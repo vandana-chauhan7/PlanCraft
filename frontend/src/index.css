@@ -1,0 +1,24 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-academia-parchment text-academia-ink font-body selection:bg-academia-gold selection:text-white;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-serif text-academia-ink;
+  }
+}
+
+/* Custom scrollbar for an elegant look */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  @apply bg-academia-parchment;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-academia-leather rounded-full;
+}
