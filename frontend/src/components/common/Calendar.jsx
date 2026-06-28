@@ -122,14 +122,20 @@ const Calendar = () => {
             const isTodo = state.todos.find(t => t.id === it.id);
             return (
               <div key={it.id} className="p-2 bg-academia-parchment border">
-                <div className="flex justify-between items-center">
-                  <div className="flex-1">
-                    <input className="w-full bg-transparent" value={it.title} onChange={(e)=> editItem(it.id, isTodo ? 'todo' : 'event', e.target.value)} />
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex-1 min-w-0">
+                    <input
+                      className="w-full bg-transparent min-w-0"
+                      value={it.title}
+                      onChange={(e)=> editItem(it.id, isTodo ? 'todo' : 'event', e.target.value)}
+                    />
                     {isTodo && <div className="text-xs text-academia-inkLight">To-Do</div>}
                   </div>
-                  <div className="flex items-center space-x-2 ml-3">
-                    {isTodo && <button onClick={() => toggleTodo(it.id)} className="px-2 py-1 border">{it.done ? 'Undo' : 'Done'}</button>}
-                    <button onClick={() => deleteItem(it.id, isTodo ? 'todo' : 'event')} className="px-2 py-1 text-red-600">Delete</button>
+                  <div className="flex flex-wrap gap-2">
+                    {isTodo && (
+                      <button onClick={() => toggleTodo(it.id)} className="px-2 py-1 border whitespace-nowrap">{it.done ? 'Undo' : 'Done'}</button>
+                    )}
+                    <button onClick={() => deleteItem(it.id, isTodo ? 'todo' : 'event')} className="px-2 py-1 text-red-600 border whitespace-nowrap">Delete</button>
                   </div>
                 </div>
               </div>

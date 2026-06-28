@@ -27,19 +27,6 @@ const Dashboard = () => {
     fetchPlanners();
   }, []);
 
-  // Derive urgent todo items from checklist blocks inside planners
-  const urgentTodos = [];
-  planners.forEach((p) => {
-    const layout = p.layout || [];
-    layout.forEach((block) => {
-      if (block.type === 'checklist' && Array.isArray(block.items)) {
-        block.items.forEach((it) => {
-          if (!it.done) urgentTodos.push({ plannerId: p.id, plannerTitle: p.title, text: it.text });
-        });
-      }
-    });
-  });
-
   // Determine most recent planner (best-effort: last in array)
   const recentPlanner = planners.length > 0 ? planners[planners.length - 1] : null;
 
@@ -51,7 +38,7 @@ const Dashboard = () => {
         <header className="flex justify-between items-end mb-6 border-b border-academia-leather pb-4">
           <div>
             <h2 className="text-4xl font-serif font-semibold text-academia-ink">Your Desk</h2>
-            <p className="text-academia-inkLight mt-2 italic font-body">Urgent tasks, calendar, and your most recent file.</p>
+            <p className="text-academia-inkLight mt-2 italic font-body">Calendar and your most recent file.</p>
           </div>
           <div className="flex items-center space-x-3">
             <Button variant="primary" onClick={() => navigate('/editor')}>+ Draft New Planner</Button>
@@ -64,34 +51,12 @@ const Dashboard = () => {
         ) : error ? (
           <div className="text-center mt-20 text-[#8c3b3b] font-body italic">{error}</div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Urgent To-Do List */}
-            <section className="col-span-1 bg-academia-paper p-6 border border-academia-leather shadow-sm">
-              <h3 className="text-xl font-serif mb-4">Urgent To-Do</h3>
-              {urgentTodos.length === 0 ? (
-                <p className="text-academia-inkLight italic">No urgent tasks. You're clear for now.</p>
-              ) : (
-                <ul className="space-y-3">
-                  {urgentTodos.slice(0, 10).map((t, idx) => (
-                    <li key={idx} className="flex justify-between items-center">
-                      <div>
-                        <p className="font-body text-sm text-academia-ink">{t.text || 'Untitled task'}</p>
-                        <p className="text-xs text-academia-inkLight">From: {t.plannerTitle}</p>
-                      </div>
-                      <button onClick={() => navigate(`/editor/${t.plannerId}`)} className="text-academia-gold">Open</button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </section>
-
-            {/* Calendar */}
-            <section className="col-span-1">
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+            <section className="xl:col-span-2">
               <Calendar />
             </section>
 
-            {/* Most Recent File */}
-            <section className="col-span-1 bg-academia-paper p-6 border border-academia-leather shadow-sm">
+            <section className="bg-academia-paper p-6 border border-academia-leather shadow-sm xl:col-span-1">
               <h3 className="text-xl font-serif mb-4">Most Recent</h3>
               {recentPlanner ? (
                 <div className="flex flex-col space-y-4">
