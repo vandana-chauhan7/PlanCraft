@@ -16,7 +16,7 @@ import GoalTrackerBlock from '../blocks/GoalTrackerBlock';
 import CalendarBlock from '../blocks/CalendarBlock';
 import NotesBlock from '../blocks/NotesBlock';
 
-const EditorBoard = ({ title, setTitle, blocks, setBlocks, saveStatus = 'saved' }) => {
+const EditorBoard = ({ title, setTitle, blocks, setBlocks, plannerId, saveStatus = 'saved' }) => {
   // Use the custom Drag and Drop hook to keep this component clean
   const { sensors, collisionDetection, reorderItems } = useDnD();
 
@@ -30,15 +30,35 @@ const EditorBoard = ({ title, setTitle, blocks, setBlocks, saveStatus = 'saved' 
     }
   };
 
+  const updateBlock = (id, partial) => {
+    setBlocks((prev) => prev.map(b => b.id === id ? { ...b, ...partial } : b));
+  };
+
   const renderBlock = (block) => {
+    const onChange = (payload) => {
+      // payload shapes vary depending on block type
+      switch (payload.type) {
+        case 'heading':
+          return updateBlock(block.id, { content: payload.content });
+        case 'text':
+          return updateBlock(block.id, { content: payload.content });
+        case 'checklist':
+          return updateBlock(block.id, { items: payload.items });
+        case 'notes':
+          return updateBlock(block.id, { note: payload.note });
+        default:
+          return updateBlock(block.id, payload);
+      }
+    };
+
     switch (block.type) {
-      case 'heading': return <HeadingBlock initialText={block.content} />;
-      case 'text': return <TextBlock initialText={block.content} />;
-      case 'checklist': return <ChecklistBlock initialItems={block.items} />;
+      case 'heading': return <HeadingBlock initialText={block.content} onChange={onChange} />;
+      case 'text': return <TextBlock initialText={block.content} onChange={onChange} />;
+      case 'checklist': return <ChecklistBlock initialItems={block.items} onChange={onChange} />;
       case 'habit': return <HabitTrackerBlock initialHabits={block.habits} />;
       case 'goal': return <GoalTrackerBlock initialGoal={block.goal} />;
       case 'calendar': return <CalendarBlock initialWeek={block.week} />;
-      case 'notes': return <NotesBlock initialNote={block.note} />;
+      case 'notes': return <NotesBlock initialNote={block.note} onChange={onChange} />;
       default: return <div className="text-academia-inkLight italic">Unknown Block Format</div>;
     }
   };
@@ -54,6 +74,12 @@ const EditorBoard = ({ title, setTitle, blocks, setBlocks, saveStatus = 'saved' 
       }`}>
         {saveStatus === 'saving' ? 'Archiving...' : saveStatus === 'error' ? 'Failed to save' : 'Saved.'}
       </div>
+
+      {plannerId && (
+        <div className="absolute top-4 left-6 text-xs italic">
+          <span className="text-academia-inkLight">Planner ID: {plannerId}</span>
+        </div>
+      )}
 
       <div className="border-b-2 border-academia-ink pb-4 mb-10">
         <input 

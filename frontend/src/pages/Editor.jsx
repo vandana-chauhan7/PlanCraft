@@ -77,6 +77,17 @@ const Editor = () => {
     );
   }
 
+  const handleManualSave = async () => {
+    if (!plannerId) return;
+    try {
+      await plannerApi.update(plannerId, { title, layout: blocks });
+      // noop: useAutoSave will reflect saved status as well
+    } catch (err) {
+      console.error('Manual save failed:', err);
+      alert('Failed to save draft.');
+    }
+  };
+
   return (
     <div className="flex h-screen w-full bg-[#eaddce]/20">
       <Sidebar activeTab="Dashboard" />
@@ -86,11 +97,68 @@ const Editor = () => {
 
       {/* The Canvas where blocks are rendered and dragged */}
       <main className="flex-1 overflow-y-auto p-10 custom-scrollbar relative">
+        <div className="flex justify-end mb-4 mr-6 space-x-3">
+          <button 
+            onClick={handleManualSave}
+            className="px-4 py-2 bg-academia-leather text-academia-paper rounded-sm hover:opacity-90"
+          >
+            Save Now
+          </button>
+
+          <button
+            onClick={async () => {
+              if (!plannerId) return alert('Planner not yet initialized');
+              if (!window.confirm('Publish this planner as a template? This will publish structure only.')) return;
+              try {
+                const sanitized = blocks.map(b => {
+                  switch (b.type) {
+                    case 'heading': return { id: b.id, type: b.type, content: '' };
+                    case 'text': return { id: b.id, type: b.type, content: '' };
+                    case 'notes': return { id: b.id, type: b.type, note: '' };
+                    case 'checklist': return { id: b.id, type: b.type, items: (b.items || []).map(() => ({ text: '', done: false })) };
+                    case 'habit': return { id: b.id, type: b.type, habits: (b.habits || []).map(h => ({ name: '', log: Array((h.log && h.log.length) || 7).fill(false) })) };
+                    case 'goal': return { id: b.id, type: b.type, goal: { title: '', current: 0, target: b.goal?.target || 100, unit: b.goal?.unit || '%' } };
+                    case 'calendar': return { id: b.id, type: b.type, week: Array(7).fill('') };
+                    default: return { id: b.id, type: b.type };
+                  }
+                });
+
+                await plannerApi.update(plannerId, { title, layout: sanitized, is_template: true });
+                alert('Planner published as template (structure only).');
+              } catch (err) {
+                console.error('Publish failed:', err);
+                alert('Failed to publish planner.');
+              }
+            }}
+            className="px-4 py-2 bg-yellow-500 text-white rounded-sm hover:opacity-90"
+          >
+            Publish
+          </button>
+
+          <button
+            onClick={async () => {
+              if (!plannerId) return;
+              if (!window.confirm('Delete this planner? This action cannot be undone.')) return;
+              try {
+                await plannerApi.delete(plannerId);
+                navigate('/planners');
+              } catch (err) {
+                console.error('Delete failed:', err);
+                alert('Failed to delete planner.');
+              }
+            }}
+            className="px-4 py-2 bg-red-500 text-white rounded-sm hover:opacity-90"
+          >
+            Delete
+          </button>
+        </div>
+
         <EditorBoard 
           title={title}
           setTitle={setTitle}
           blocks={blocks}
           setBlocks={setBlocks}
+          plannerId={plannerId}
           saveStatus={saveStatus}
         />
       </main>

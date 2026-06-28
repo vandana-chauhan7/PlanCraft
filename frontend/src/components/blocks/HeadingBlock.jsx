@@ -1,7 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-const HeadingBlock = ({ initialText = '' }) => {
+const HeadingBlock = ({ initialText = '', onChange }) => {
   const [text, setText] = useState(initialText);
+
+  useEffect(() => {
+    if (onChange) onChange({ type: 'heading', content: text });
+  }, [text, onChange]);
 
   return (
     <div className="w-full mb-2">

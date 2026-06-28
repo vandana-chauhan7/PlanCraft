@@ -1,7 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-const ChecklistBlock = ({ initialItems = [] }) => {
+const ChecklistBlock = ({ initialItems = [], onChange }) => {
   const [items, setItems] = useState(initialItems.length > 0 ? initialItems : [{ text: '', done: false }]);
+
+  useEffect(() => {
+    if (onChange) onChange({ type: 'checklist', items });
+  }, [items, onChange]);
 
   const toggleItem = (index) => {
     const newItems = [...items];
@@ -26,7 +30,6 @@ const ChecklistBlock = ({ initialItems = [] }) => {
       <div className="space-y-2">
         {items.map((item, index) => (
           <div key={index} className="flex items-start space-x-3 group">
-            {/* Custom styled checkbox */}
             <button 
               onClick={() => toggleItem(index)}
               className={`mt-1 flex-shrink-0 w-5 h-5 border flex items-center justify-center transition-colors ${

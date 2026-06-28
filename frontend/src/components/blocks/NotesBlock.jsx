@@ -1,11 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-const NotesBlock = ({ initialNote = '' }) => {
+const NotesBlock = ({ initialNote = '', onChange }) => {
   const [note, setNote] = useState(initialNote);
+
+  useEffect(() => {
+    if (onChange) onChange({ type: 'notes', note });
+  }, [note, onChange]);
 
   return (
     <div className="relative w-full p-6 bg-[#f7f0e1] border border-academia-leather/80 shadow-md">
-      {/* Decorative "Tape" or "Pin" illusion */}
       <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-12 h-4 bg-[#e5dfd3] shadow-sm border border-academia-leather/20 opacity-80 rotate-1"></div>
       
       <h5 className="font-serif italic text-academia-inkLight text-sm mb-2">Important Note</h5>

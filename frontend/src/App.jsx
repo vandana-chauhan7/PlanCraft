@@ -8,6 +8,8 @@ import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Editor from './pages/Editor';
 import Marketplace from './pages/Marketplace';
+import Settings from './pages/Settings';
+import Planners from './pages/Planners';
 
 /**
  * A wrapper component that blocks unauthenticated users 
@@ -49,6 +51,14 @@ function App() {
         <Route 
           path="/marketplace" 
           element={<ProtectedRoute><Marketplace /></ProtectedRoute>} 
+        />
+        <Route 
+          path="/planners" 
+          element={<ProtectedRoute><Planners /></ProtectedRoute>} 
+        />
+        <Route 
+          path="/settings" 
+          element={<ProtectedRoute><Settings /></ProtectedRoute>} 
         />
         
         {/* Editor Routes (Supports creating new or editing existing) */}

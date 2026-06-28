@@ -1,7 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-const TextBlock = ({ initialText = '' }) => {
+const TextBlock = ({ initialText = '', onChange }) => {
   const [text, setText] = useState(initialText);
+
+  useEffect(() => {
+    if (onChange) onChange({ type: 'text', content: text });
+  }, [text, onChange]);
 
   return (
     <div className="w-full">
@@ -10,7 +14,7 @@ const TextBlock = ({ initialText = '' }) => {
         onChange={(e) => setText(e.target.value)}
         placeholder="Begin writing your thoughts here..."
         className="w-full min-h-[100px] bg-transparent outline-none resize-none text-academia-ink font-body leading-relaxed placeholder-academia-inkLight/60 focus:ring-0 border-none p-0"
-        style={{ fieldSizing: 'content' }} // New CSS feature for auto-growing textareas (fallback to standard rows if needed)
+        style={{ fieldSizing: 'content' }}
       />
     </div>
   );

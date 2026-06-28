@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/common/Sidebar';
 import Button from '../components/common/Button';
 import { plannerApi } from '../api/plannerApi';
+import Calendar from '../components/common/Calendar';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -26,55 +27,96 @@ const Dashboard = () => {
     fetchPlanners();
   }, []);
 
+  // Derive urgent todo items from checklist blocks inside planners
+  const urgentTodos = [];
+  planners.forEach((p) => {
+    const layout = p.layout || [];
+    layout.forEach((block) => {
+      if (block.type === 'checklist' && Array.isArray(block.items)) {
+        block.items.forEach((it) => {
+          if (!it.done) urgentTodos.push({ plannerId: p.id, plannerTitle: p.title, text: it.text });
+        });
+      }
+    });
+  });
+
+  // Determine most recent planner (best-effort: last in array)
+  const recentPlanner = planners.length > 0 ? planners[planners.length - 1] : null;
+
   return (
     <div className="flex h-screen w-full bg-academia-parchment">
       <Sidebar activeTab="Dashboard" />
-      
+
       <main className="flex-1 p-12 overflow-y-auto custom-scrollbar">
-        <header className="flex justify-between items-end mb-10 border-b border-academia-leather pb-6">
+        <header className="flex justify-between items-end mb-6 border-b border-academia-leather pb-4">
           <div>
             <h2 className="text-4xl font-serif font-semibold text-academia-ink">Your Desk</h2>
-            <p className="text-academia-inkLight mt-2 italic font-body">A quiet place to organize your thoughts and studies.</p>
+            <p className="text-academia-inkLight mt-2 italic font-body">Urgent tasks, calendar, and your most recent file.</p>
           </div>
-          <Button variant="primary" onClick={() => navigate('/editor')}>
-            + Draft New Planner
-          </Button>
+          <div className="flex items-center space-x-3">
+            <Button variant="primary" onClick={() => navigate('/editor')}>+ Draft New Planner</Button>
+            <Button onClick={() => navigate('/planners')}>View All Planners</Button>
+          </div>
         </header>
 
         {loading ? (
           <div className="text-center mt-20 text-academia-inkLight font-body italic">Loading your desk...</div>
         ) : error ? (
           <div className="text-center mt-20 text-[#8c3b3b] font-body italic">{error}</div>
-        ) : planners.length === 0 ? (
-          <div className="text-center mt-20 text-academia-inkLight font-body italic">
-            Your desk is currently empty. Draft a new planner to begin.
-          </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-            {planners.map((planner) => (
-              <div 
-                key={planner.id} 
-                onClick={() => navigate(`/editor/${planner.id}`)}
-                className="group bg-academia-paper p-6 border border-academia-leather shadow-paper hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-pointer relative min-h-[160px] flex flex-col justify-between"
-              >
-                <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-academia-gold/60 group-hover:bg-academia-gold transition-colors"></div>
-                
-                <div>
-                  <h3 className="text-xl font-serif font-medium group-hover:text-[#8a6b46] transition-colors line-clamp-2">
-                    {planner.title}
-                  </h3>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Urgent To-Do List */}
+            <section className="col-span-1 bg-academia-paper p-6 border border-academia-leather shadow-sm">
+              <h3 className="text-xl font-serif mb-4">Urgent To-Do</h3>
+              {urgentTodos.length === 0 ? (
+                <p className="text-academia-inkLight italic">No urgent tasks. You're clear for now.</p>
+              ) : (
+                <ul className="space-y-3">
+                  {urgentTodos.slice(0, 10).map((t, idx) => (
+                    <li key={idx} className="flex justify-between items-center">
+                      <div>
+                        <p className="font-body text-sm text-academia-ink">{t.text || 'Untitled task'}</p>
+                        <p className="text-xs text-academia-inkLight">From: {t.plannerTitle}</p>
+                      </div>
+                      <button onClick={() => navigate(`/editor/${t.plannerId}`)} className="text-academia-gold">Open</button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+
+            {/* Calendar */}
+            <section className="col-span-1">
+              <Calendar />
+            </section>
+
+            {/* Most Recent File */}
+            <section className="col-span-1 bg-academia-paper p-6 border border-academia-leather shadow-sm">
+              <h3 className="text-xl font-serif mb-4">Most Recent</h3>
+              {recentPlanner ? (
+                <div className="flex flex-col space-y-4">
+                  <div className="p-4 bg-academia-parchment border border-academia-leather">
+                    <h4 className="text-lg font-serif">{recentPlanner.title}</h4>
+                    <p className="text-xs text-academia-inkLight">{recentPlanner.is_template ? 'Template' : 'Draft'}</p>
+                  </div>
+                  <div className="flex space-x-3">
+                    <button onClick={() => navigate(`/editor/${recentPlanner.id}`)} className="px-4 py-2 bg-academia-leather text-academia-paper rounded-sm">Open</button>
+                    <button onClick={async () => {
+                      if (!window.confirm('Delete this draft?')) return;
+                      try {
+                        await plannerApi.delete(recentPlanner.id);
+                        setPlanners((prev) => prev.filter(p => p.id !== recentPlanner.id));
+                      } catch (err) {
+                        console.error('Failed to delete planner:', err);
+                        alert('Unable to delete draft.');
+                      }
+                    }} className="px-4 py-2 border border-red-400 text-red-600 rounded-sm">Delete</button>
+                  </div>
                 </div>
-                
-                <div className="flex justify-between items-end mt-4">
-                  <p className="text-xs text-academia-inkLight font-body uppercase tracking-wider">
-                    {planner.is_template ? 'Template copy' : 'Draft saved'}
-                  </p>
-                  <svg className="w-5 h-5 text-academia-leather group-hover:text-academia-gold transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                  </svg>
-                </div>
-              </div>
-            ))}
+              ) : (
+                <p className="text-academia-inkLight italic">No recent files yet.</p>
+              )}
+            </section>
           </div>
         )}
       </main>

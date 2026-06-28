@@ -17,9 +17,9 @@ const Sidebar = ({ activeTab = 'Dashboard', onTabChange }) => {
     onTabChange && onTabChange(itemName);
     const routeMap = {
       'Dashboard': '/dashboard',
-      'My Planners': '/dashboard',
+      'My Planners': '/planners',
       'Marketplace': '/marketplace',
-      'Settings': '/dashboard'
+      'Settings': '/settings'
     };
     navigate(routeMap[itemName] || '/dashboard');
   };
