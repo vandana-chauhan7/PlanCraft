@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect } from 'react';
-import apiClient from '../api/axiosConfig';
+import { authApi } from '../api/authApi';
 
 export const AuthContext = createContext();
 
@@ -12,12 +12,11 @@ export const AuthProvider = ({ children }) => {
       const token = localStorage.getItem('token');
       if (token) {
         try {
-          // Assuming you add a /me endpoint to FastAPI later
-          // const response = await apiClient.get('/auth/me');
-          // setUser(response.data);
-          setUser({ email: 'scholar@academy.edu' }); // Mocked for now
+          const response = await authApi.getCurrentUser();
+          setUser(response);
         } catch (error) {
           localStorage.removeItem('token');
+          setUser(null);
         }
       }
       setLoading(false);

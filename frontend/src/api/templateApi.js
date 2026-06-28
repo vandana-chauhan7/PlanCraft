@@ -5,8 +5,15 @@ export const templateApi = {
    * Fetch all publicly available templates from the marketplace
    */
   getMarketplaceTemplates: async () => {
-    const response = await apiClient.get('/templates/');
+    const response = await apiClient.get('/templates/marketplace');
     return response.data;
+  },
+
+  /**
+   * Alias for marketplace listing
+   */
+  getAll: async () => {
+    return await templateApi.getMarketplaceTemplates();
   },
 
   /**
@@ -25,6 +32,10 @@ export const templateApi = {
   duplicateTemplate: async (templateId) => {
     const response = await apiClient.post(`/templates/${templateId}/duplicate`);
     return response.data;
+  },
+
+  duplicate: async (templateId) => {
+    return await templateApi.duplicateTemplate(templateId);
   },
 
   /**

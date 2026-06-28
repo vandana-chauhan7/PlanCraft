@@ -6,15 +6,24 @@ import { plannerApi } from '../api/plannerApi';
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const [planners, setPlanners] = useState([
-    // Mock data until API is connected
-    { id: 1, title: 'Fall Semester Studies', updated_at: '2024-10-12', is_template: false },
-    { id: 2, title: 'Daily Thesis Journal', updated_at: '2024-10-14', is_template: false },
-  ]);
+  const [planners, setPlanners] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Fetch user planners on mount
-    // plannerApi.getAll().then(setPlanners).catch(console.error);
+    const fetchPlanners = async () => {
+      try {
+        const data = await plannerApi.getAll();
+        setPlanners(data);
+      } catch (err) {
+        console.error('Unable to load your workspace:', err);
+        setError('Unable to load your desk right now. Please refresh.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPlanners();
   }, []);
 
   return (
@@ -32,7 +41,11 @@ const Dashboard = () => {
           </Button>
         </header>
 
-        {planners.length === 0 ? (
+        {loading ? (
+          <div className="text-center mt-20 text-academia-inkLight font-body italic">Loading your desk...</div>
+        ) : error ? (
+          <div className="text-center mt-20 text-[#8c3b3b] font-body italic">{error}</div>
+        ) : planners.length === 0 ? (
           <div className="text-center mt-20 text-academia-inkLight font-body italic">
             Your desk is currently empty. Draft a new planner to begin.
           </div>
@@ -44,7 +57,6 @@ const Dashboard = () => {
                 onClick={() => navigate(`/editor/${planner.id}`)}
                 className="group bg-academia-paper p-6 border border-academia-leather shadow-paper hover:shadow-md hover:-translate-y-1 transition-all duration-300 cursor-pointer relative min-h-[160px] flex flex-col justify-between"
               >
-                {/* Book binding accent */}
                 <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-academia-gold/60 group-hover:bg-academia-gold transition-colors"></div>
                 
                 <div>
@@ -55,7 +67,7 @@ const Dashboard = () => {
                 
                 <div className="flex justify-between items-end mt-4">
                   <p className="text-xs text-academia-inkLight font-body uppercase tracking-wider">
-                    {planner.updated_at}
+                    {planner.is_template ? 'Template copy' : 'Draft saved'}
                   </p>
                   <svg className="w-5 h-5 text-academia-leather group-hover:text-academia-gold transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
